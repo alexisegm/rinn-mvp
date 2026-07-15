@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import PerfilView from './features/perfil/PerfilView';
 import MainLayout from './layout/MainLayout';
 import HomeView from './features/home/HomeView';
 import CatalogoView from './features/catalogo/CatalogoView';
@@ -36,6 +37,14 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <FavoritosView />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/perfil" 
+                      element={
+                        <ProtectedRoute>
+                          <PerfilView />
                         </ProtectedRoute>
                       } 
                     />

@@ -1,17 +1,16 @@
-// src/layout/TopNav.jsx
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFavoritos } from '../context/FavoritosContext';
 import { useSearch } from '../context/SearchContext';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext'; // <-- Importar el contexto del carrito
+import { useCart } from '../context/CartContext'; 
 
 export default function TopNav() {
   const { favoritos } = useFavoritos();
   const { searchTerm, ejecutarBusqueda, historial, limpiarHistorial } = useSearch();
   const { user, logout } = useAuth();
   
-  const { totalItems } = useCart(); // <-- Extraer total de items calculados
+  const { totalItems } = useCart(); 
   const navigate = useNavigate();
   
   const [inputValue, setInputValue] = useState("");
@@ -46,7 +45,6 @@ export default function TopNav() {
     <nav className="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         
-        {/* Logo RINN */}
         <Link to="/" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-white">R</div>
           <span className="text-xl font-black tracking-tighter text-white">
@@ -54,7 +52,6 @@ export default function TopNav() {
           </span>
         </Link>
 
-        {/* Buscador Interactivo con Formulario */}
         <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
           <form onSubmit={handleSubmit} className="w-full relative">
             <input 
@@ -75,7 +72,6 @@ export default function TopNav() {
             </button>
           </form>
 
-          {/* Menú Desplegable del Historial */}
           {showDropdown && historial.length > 0 && (
             <div className="absolute top-full left-0 mt-1 w-full bg-slate-800 border border-slate-700 rounded-md shadow-2xl z-50 overflow-hidden">
               <div className="p-2 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
@@ -103,7 +99,6 @@ export default function TopNav() {
           )}
         </div>
 
-        {/* Acciones de Usuario */}
         <div className="flex items-center gap-6">
           <Link 
             to="/favoritos" 
@@ -118,7 +113,6 @@ export default function TopNav() {
             )}
           </Link>
 
-          {/* Link del Carrito */}
           <Link 
             to="/carrito" 
             className="text-slate-300 hover:text-white flex items-center gap-2 text-sm font-medium relative transition-colors"
@@ -134,9 +128,12 @@ export default function TopNav() {
           
           {user ? (
             <div className="flex items-center gap-4 border-l border-slate-700 pl-4">
-              <span className="text-xs text-slate-400 hidden lg:inline font-mono">
-                {user.email}
-              </span>
+              <Link 
+                to="/perfil" 
+                className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Mi Perfil
+              </Link>
               <button 
                 onClick={handleLogout}
                 className="text-slate-300 hover:text-red-400 flex items-center gap-2 text-sm font-medium transition-colors"
