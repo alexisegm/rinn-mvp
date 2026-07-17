@@ -1,27 +1,41 @@
-// src/features/catalogo/components/SidebarFiltros.jsx
+import { Link } from 'react-router-dom';
 import { useCategorias } from '../../../hooks/useCategorias';
+import { useGarage } from '../../../context/GarageContext';
 
 export default function SidebarFiltros({ categoriaActiva, setCategoriaActiva }) {
-  // Invocamos a nuestro nuevo hook
   const { categorias, isLoadingCat } = useCategorias();
+  const { vehiculoActivo } = useGarage();
 
   return (
     <aside className="w-full md:w-64 flex-shrink-0 flex flex-col gap-6">
-      {/* Sección: Mi Garaje (Se mantiene igual por ahora) */}
       <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-          Vehículo Activo
+          Mi Garaje
         </h3>
-        <div className="flex items-center gap-3 bg-slate-800/50 p-3 rounded border border-slate-700">
-          <div className="w-10 h-10 bg-blue-900/50 rounded flex items-center justify-center text-blue-400">🚗</div>
-          <div>
-            <p className="text-sm font-bold text-white">Toyota 4Runner</p>
-            <p className="text-xs text-slate-400">2021 • 4.0L V6</p>
+        
+        {vehiculoActivo ? (
+          <div className="flex items-center gap-3 bg-slate-800/50 p-3 rounded border border-slate-700">
+            <div className="w-10 h-10 bg-blue-900/50 rounded flex items-center justify-center text-blue-400">🚗</div>
+            <div>
+              <p className="text-sm font-bold text-white">
+                {vehiculoActivo.marca} {vehiculoActivo.modelo}
+              </p>
+              <p className="text-xs text-slate-400">Año: {vehiculoActivo.ano}</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="text-center bg-slate-800/30 p-4 rounded border border-slate-700/50">
+            <p className="text-xs text-slate-400 mb-3">Navegación general activada.</p>
+            <Link 
+              to="/perfil" 
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded transition-colors block w-full"
+            >
+              Seleccionar Vehículo
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* Sección: Categorías Dinámicas */}
       <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex-1">
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
           Filtros de Categoría
@@ -31,7 +45,6 @@ export default function SidebarFiltros({ categoriaActiva, setCategoriaActiva }) 
           <p className="text-sm text-slate-500 animate-pulse">Cargando filtros...</p>
         ) : (
           <ul className="space-y-1">
-            {/* Botón para limpiar filtros (Ver Todo) */}
             <li>
               <button 
                 onClick={() => setCategoriaActiva(null)}
@@ -45,7 +58,6 @@ export default function SidebarFiltros({ categoriaActiva, setCategoriaActiva }) 
               </button>
             </li>
             
-            {/* Renderizamos las categorías de la base de datos */}
             {categorias.map((cat) => (
               <li key={cat.id}>
                 <button 

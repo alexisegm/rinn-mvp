@@ -24,8 +24,14 @@ export function useRepuesto(sku, vehiculoId = null) {
             id, 
             sku, 
             nombre,
+            descripcion,
+            especificaciones,
             categorias (nombre),
-            inventario_tienda (precio_usd, stock)
+            inventario_tienda (
+              precio_usd, 
+              stock,
+              tiendas (nombre, direccion, coordenadas)
+            )
           `)
           .eq('sku', sku)
           .single();
@@ -36,13 +42,28 @@ export function useRepuesto(sku, vehiculoId = null) {
           throw new Error("No se encontró el repuesto en la base de datos.");
         }
 
+        const totalStock = data.inventario_tienda?.reduce((acc, curr) => acc + (curr.stock || 0), 0) || 0;
+        const precioRef = data.inventario_tienda[0]?.precio_usd || "0.00";
+
+        const tiendasDisponibles = data.inventario_tienda
+          ?.filter(inv => inv.stock > 0)
+          .map(inv => ({
+            nombre: inv.tiendas?.nombre,
+            direccion: inv.tiendas?.direccion,
+            coordenadas: inv.tiendas?.coordenadas,
+            stock: inv.stock
+          })) || [];
+
         const repuestoFormateado = {
           id: data.id,
           sku: data.sku,
           nombre: data.nombre,
+          descripcion: data.descripcion || "Sin descripción detallada disponible.",
+          especificaciones: data.especificaciones || null,
           categoria: data.categorias?.nombre || "General",
-          precio: data.inventario_tienda[0]?.precio_usd || "0.00",
-          stock: data.inventario_tienda[0]?.stock || 0
+          precio: precioRef,
+          stock: totalStock,
+          disponibilidad: tiendasDisponibles
         };
 
         setRepuesto(repuestoFormateado);

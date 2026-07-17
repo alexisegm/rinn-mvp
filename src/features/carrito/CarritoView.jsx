@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../config/supabase';
 
 export default function CarritoView() {
   const { carrito, eliminarDelCarrito, actualizarCantidad, limpiarCarrito, totalItems, totalPrecio, procesarOrden } = useCart();
@@ -9,6 +10,23 @@ export default function CarritoView() {
   const navigate = useNavigate();
   
   const [enviando, setEnviando] = useState(false);
+  const [tipoEntrega, setTipoEntrega] = useState('envio'); // 'envio' o 'retiro'
+  const [sucursalSeleccionada, setSucursalSeleccionada] = useState('');
+  const [tiendas, setTiendas] = useState([]);
+  
+  const costoEnvio = tipoEntrega === 'envio' ? 10.00 : 0;
+  const totalFinal = totalPrecio + costoEnvio;
+
+  // Cargar tiendas desde Supabase
+  useEffect(() => {
+    const fetchTiendas = async () => {
+      const { data, error } = await supabase.from('tiendas').select('id, nombre, direccion');
+      if (!error && data) {
+        setTiendas(data);
+      }
+    };
+    fetchTiendas();
+  }, []);
 
   const handlePagar = async () => {
     if (!user) {
@@ -17,10 +35,22 @@ export default function CarritoView() {
       return;
     }
 
+    if (tipoEntrega === 'retiro' && !sucursalSeleccionada) {
+      alert("Por favor, selecciona una sucursal para el retiro.");
+      return;
+    }
+
     try {
       setEnviando(true);
 
-      const ordenIdGenerado = await procesarOrden(user.id);
+      // Preparamos los nuevos datos de envío para la base de datos
+      const datosEnvio = {
+        tipo_entrega: tipoEntrega,
+        sucursal_id: tipoEntrega === 'retiro' ? sucursalSeleccionada : null,
+      };
+
+      // Nota: procesarOrden ya está configurado en el Context para recibir estos datos y el total actualizado
+      const ordenIdGenerado = await procesarOrden(user.id, datosEnvio, totalFinal);
       
       if (ordenIdGenerado) {
         navigate('/checkout/success', { 
@@ -118,7 +148,44 @@ export default function CarritoView() {
 
         <div className="w-full lg:w-1/3">
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl sticky top-24">
-            <h2 className="text-lg font-bold text-white mb-6">Resumen Financiero</h2>
+            <h2 className="text-lg font-bold text-white mb-6">Método de Entrega</h2>
+            
+            {/* Selector de Pestañas (Toggle) */}
+            <div className="flex bg-slate-800 p-1 rounded-lg mb-6">
+              <button
+                onClick={() => setTipoEntrega('envio')}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${tipoEntrega === 'envio' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+              >
+                🚚 Domicilio
+              </button>
+              <button
+                onClick={() => setTipoEntrega('retiro')}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${tipoEntrega === 'retiro' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+              >
+                🏪 Retiro
+              </button>
+            </div>
+
+            {/* Selector de Sucursales (Solo si elige Retiro) */}
+            {tipoEntrega === 'retiro' && (
+              <div className="mb-6 animate-fade-in">
+                <label className="block text-sm text-slate-400 mb-2">Selecciona la sucursal de retiro:</label>
+                <select 
+                  value={sucursalSeleccionada}
+                  onChange={(e) => setSucursalSeleccionada(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-blue-500 transition-colors"
+                >
+                  <option value="" disabled>-- Elige una tienda --</option>
+                  {tiendas.map((tienda) => (
+                    <option key={tienda.id} value={tienda.id}>
+                      {tienda.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <h2 className="text-lg font-bold text-white mb-4 border-t border-slate-800 pt-6">Resumen Financiero</h2>
             
             <div className="space-y-3 mb-6 pb-6 border-b border-slate-800">
               <div className="flex justify-between text-slate-400 text-sm">
@@ -126,14 +193,14 @@ export default function CarritoView() {
                 <span>${totalPrecio.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-slate-400 text-sm">
-                <span>Impuestos (16%)</span>
-                <span>Calculado al final</span>
+                <span>Costo de Envío</span>
+                <span>{tipoEntrega === 'envio' ? `$${costoEnvio.toFixed(2)}` : 'Gratis'}</span>
               </div>
             </div>
 
             <div className="flex justify-between items-end mb-8">
               <span className="text-sm font-bold text-slate-300 uppercase tracking-wider">Total Estimado</span>
-              <span className="text-3xl font-black text-emerald-400">${totalPrecio.toFixed(2)}</span>
+              <span className="text-3xl font-black text-emerald-400">${totalFinal.toFixed(2)}</span>
             </div>
 
             <button 

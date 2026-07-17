@@ -47,17 +47,19 @@ export function CartProvider({ children }) {
     setCarrito([]);
   };
 
-  const procesarOrden = async (usuarioId, datosEnvio = {}) => {
+  // Se añade el parámetro totalFinal para reflejar costos de envío
+  const procesarOrden = async (usuarioId, datosEnvio = {}, totalFinal) => {
     try {
-      const total = carrito.reduce((sum, item) => sum + (parseFloat(item.precio) * item.cantidad), 0);
+      // Si no viene un totalFinal, recalculamos el base como salvaguarda
+      const totalSeguro = totalFinal || carrito.reduce((sum, item) => sum + (parseFloat(item.precio) * item.cantidad), 0);
 
       const { data: orden, error: ordenError } = await supabase
         .from('ordenes')
         .insert({ 
           usuario_id: usuarioId,
-          total: total,
+          total: totalSeguro,
           estado: 'pendiente',
-          ...datosEnvio
+          ...datosEnvio // Aquí se inyectan tipo_entrega y sucursal_id
         })
         .select()
         .single();

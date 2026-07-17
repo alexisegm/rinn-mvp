@@ -1,7 +1,9 @@
-// src/features/home/HomeView.jsx
 import { Link } from 'react-router-dom';
+import { useGarage } from '../../context/GarageContext';
 
 export default function HomeView() {
+  const { vehiculoActivo } = useGarage();
+  
   const categorias = [
     { id: 'repuestos-generales', nombre: 'Repuestos Generales', icono: '⚙️' },
     { id: 'desempeno-tuning', nombre: 'Desempeño y Tuning', icono: '🏎️' },
@@ -15,22 +17,36 @@ export default function HomeView() {
 
   return (
     <div className="w-full flex flex-col gap-8">
-      {/* Sección Hero / Garaje Rápido */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-white mb-2">Encuentra el repuesto exacto.</h1>
           <p className="text-slate-400">Selecciona una categoría para ver compatibilidades garantizadas para tu vehículo.</p>
         </div>
-        <div className="bg-slate-950 border border-slate-800 p-4 rounded-lg flex items-center gap-4 min-w-[250px]">
-          <div className="text-3xl">🚗</div>
-          <div>
-            <p className="text-xs font-bold text-slate-500 uppercase">Vehículo Activo</p>
-            <p className="text-lg font-bold text-emerald-400">Toyota 4Runner</p>
+        
+        {vehiculoActivo ? (
+          <div className="bg-slate-950 border border-slate-800 p-4 rounded-lg flex items-center gap-4 min-w-[250px]">
+            <div className="text-3xl">🚗</div>
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase">Vehículo Activo</p>
+              <p className="text-lg font-bold text-emerald-400">
+                {vehiculoActivo.marca} {vehiculoActivo.modelo}
+              </p>
+              <p className="text-xs text-slate-400">Año: {vehiculoActivo.ano}</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-slate-950 border border-slate-800 p-4 rounded-lg flex flex-col items-center gap-2 min-w-[250px]">
+            <p className="text-sm font-bold text-slate-300">¿Buscas piezas exactas?</p>
+            <Link 
+              to="/perfil" 
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded transition-colors w-full text-center"
+            >
+              Configurar Mi Garage
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* Cuadrícula de Categorías (Inicio) */}
       <div>
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           Explorar Catálogo

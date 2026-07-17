@@ -1,8 +1,15 @@
-// src/features/catalogo/GarageSelector.jsx
 import { useGarage } from '../../../context/GarageContext';
 
 export default function GarageSelector() {
-  const { vehiculosDisponibles, vehiculoActivo, seleccionarVehiculo, limpiarGarage } = useGarage();
+  const { vehiculosDisponibles, vehiculoActivo, seleccionarVehiculo, limpiarGarage, isLoadingGarage } = useGarage();
+
+  if (isLoadingGarage) {
+    return (
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-8 shadow-xl flex items-center justify-center">
+        <span className="text-slate-400 font-medium">Abriendo tu Garage...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-8 shadow-xl">
@@ -11,7 +18,6 @@ export default function GarageSelector() {
         <h2 className="text-xl font-bold text-white">Tu Garage</h2>
       </div>
       
-      {/* Si hay un vehículo activo, mostramos cuál es y damos la opción de cambiarlo */}
       {vehiculoActivo ? (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg gap-4">
           <div>
@@ -30,7 +36,6 @@ export default function GarageSelector() {
           </button>
         </div>
       ) : (
-        /* Si NO hay vehículo activo, mostramos los botones para elegir uno */
         <div>
           <p className="text-sm text-slate-400 mb-4">Selecciona tu vehículo para filtrar el catálogo y ver repuestos 100% compatibles.</p>
           

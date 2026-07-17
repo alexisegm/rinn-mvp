@@ -1,50 +1,96 @@
-// src/context/GarageContext.jsx
 import { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '../config/supabase';
+import { useAuth } from './AuthContext';
 import { safeLocalStorage } from '../utils/safeLocalStorage';
 
 const GarageContext = createContext();
 
 export function GarageProvider({ children }) {
-  // Lista de todos los vehículos disponibles en la base de datos
+  const { user } = useAuth();
   const [vehiculosDisponibles, setVehiculosDisponibles] = useState([]);
-  
-  // El vehículo que el usuario tiene seleccionado actualmente
-  const [vehiculoActivo, setVehiculoActivo] = useState(() => {
+  const [vehiculoActivo, setVehiculoActivoState] = useState(() => {
     return safeLocalStorage.getItem('rinn_garage_activo', null);
   });
+  const [isLoadingGarage, setIsLoadingGarage] = useState(true);
 
-  // Efecto para buscar los vehículos desde Supabase al cargar la app
   useEffect(() => {
     const fetchVehiculos = async () => {
       try {
         const { data, error } = await supabase
           .from('vehiculos')
           .select('*')
-          .order('marca', { ascending: true }); // Ordenados alfabéticamente
+          .order('marca', { ascending: true });
 
         if (error) throw error;
         if (data) setVehiculosDisponibles(data);
       } catch (error) {
-        console.error("Error cargando vehículos del garage:", error);
+        console.error(error);
       }
     };
 
     fetchVehiculos();
   }, []);
 
-  // Efecto para persistir el vehículo seleccionado en localStorage
   useEffect(() => {
-    safeLocalStorage.setItem('rinn_garage_activo', vehiculoActivo);
-  }, [vehiculoActivo]);
+    const cargarVehiculoGuardado = async () => {
+      if (!user?.id) {
+        setIsLoadingGarage(false);
+        return;
+      }
 
-  // Funciones de control
-  const seleccionarVehiculo = (vehiculo) => {
-    setVehiculoActivo(vehiculo);
+      try {
+        setIsLoadingGarage(true);
+        const { data, error } = await supabase
+          .from('usuario_vehiculo')
+          .select('vehiculo_id, vehiculos(*)')
+          .eq('usuario_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error(error);
+        }
+
+        if (data?.vehiculos) {
+          setVehiculoActivoState(data.vehiculos);
+          safeLocalStorage.setItem('rinn_garage_activo', data.vehiculos);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoadingGarage(false);
+      }
+    };
+
+    cargarVehiculoGuardado();
+  }, [user?.id]);
+
+  const seleccionarVehiculo = async (vehiculo) => {
+    setVehiculoActivoState(vehiculo);
+    safeLocalStorage.setItem('rinn_garage_activo', vehiculo);
+
+    if (user?.id) {
+      if (vehiculo) {
+        const { error } = await supabase
+          .from('usuario_vehiculo')
+          .upsert(
+            { usuario_id: user.id, vehiculo_id: vehiculo.id },
+            { onConflict: 'usuario_id' }
+          );
+
+        if (error) console.error(error);
+      } else {
+        const { error } = await supabase
+          .from('usuario_vehiculo')
+          .delete()
+          .eq('usuario_id', user.id);
+
+        if (error) console.error(error);
+      }
+    }
   };
 
   const limpiarGarage = () => {
-    setVehiculoActivo(null);
+    seleccionarVehiculo(null);
   };
 
   return (
@@ -52,7 +98,8 @@ export function GarageProvider({ children }) {
       vehiculosDisponibles, 
       vehiculoActivo, 
       seleccionarVehiculo, 
-      limpiarGarage 
+      limpiarGarage,
+      isLoadingGarage
     }}>
       {children}
     </GarageContext.Provider>

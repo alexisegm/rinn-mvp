@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFavoritos } from '../context/FavoritosContext';
 import { useSearch } from '../context/SearchContext';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext'; 
+import { useCart } from '../context/CartContext';
 
 export default function TopNav() {
   const { favoritos } = useFavoritos();
@@ -15,10 +15,22 @@ export default function TopNav() {
   
   const [inputValue, setInputValue] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     setInputValue(searchTerm);
   }, [searchTerm]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,7 +49,7 @@ export default function TopNav() {
       await logout();
       navigate('/'); 
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      console.error(error);
     }
   };
 
@@ -99,15 +111,27 @@ export default function TopNav() {
           )}
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
+          <Link 
+            to="/catalogo" 
+            className="text-slate-300 hover:text-white flex items-center gap-2 text-sm font-medium transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+            </svg>
+            <span className="hidden sm:inline">Catálogo</span>
+          </Link>
+
           <Link 
             to="/favoritos" 
             className="text-slate-300 hover:text-white flex items-center gap-2 text-sm font-medium relative transition-colors"
           >
-            <span className="text-xl">❤️</span>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            </svg>
             <span className="hidden sm:inline">Favoritos</span>
             {favoritos.length > 0 && (
-              <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
                 {favoritos.length}
               </span>
             )}
@@ -117,7 +141,9 @@ export default function TopNav() {
             to="/carrito" 
             className="text-slate-300 hover:text-white flex items-center gap-2 text-sm font-medium relative transition-colors"
           >
-            <span className="text-xl">🛒</span>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
             <span className="hidden sm:inline">Carrito</span>
             {totalItems > 0 && (
               <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
@@ -127,30 +153,54 @@ export default function TopNav() {
           </Link>
           
           {user ? (
-            <div className="flex items-center gap-4 border-l border-slate-700 pl-4">
-              <Link 
-                to="/perfil" 
-                className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Mi Perfil
-              </Link>
+            <div className="relative border-l border-slate-700 pl-4 sm:pl-6" ref={userMenuRef}>
               <button 
-                onClick={handleLogout}
-                className="text-slate-300 hover:text-red-400 flex items-center gap-2 text-sm font-medium transition-colors"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors focus:outline-none"
               >
-                Cerrar Sesión
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span className="hidden sm:inline text-sm font-medium">Cuenta</span>
               </button>
+
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-3 w-48 bg-slate-800 border border-slate-700 rounded-md shadow-2xl py-1 z-50">
+                  <div className="px-4 py-3 border-b border-slate-700">
+                    <p className="text-xs text-slate-400">Sesión iniciada</p>
+                    <p className="text-sm font-bold text-white truncate">{user.email}</p>
+                  </div>
+                  <Link 
+                    to="/perfil" 
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                  >
+                    Mi Perfil
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 transition-colors"
+                  >
+                    Cerrar Sesión
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
-            <Link 
-              to="/auth" 
-              className="bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 px-4 py-1.5 rounded transition-colors flex items-center gap-2 text-sm font-medium"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-              </svg>
-              Iniciar Sesión
-            </Link>
+            <div className="border-l border-slate-700 pl-4 sm:pl-6">
+              <Link 
+                to="/auth" 
+                className="bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 sm:px-4 sm:py-1.5 rounded transition-colors flex items-center gap-2 text-sm font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+                <span className="hidden sm:inline">Ingresar</span>
+              </Link>
+            </div>
           )}
         </div>
       </div>

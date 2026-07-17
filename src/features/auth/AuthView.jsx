@@ -1,4 +1,3 @@
-// src/features/auth/AuthView.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -24,14 +23,15 @@ export default function AuthView() {
         await login(email, password);
       } else {
         await register(email, password);
-        // Supabase requiere confirmación de email por defecto. 
-        // Si no lo has desactivado en tu panel, avisa al usuario:
         alert("Revisa tu correo electrónico para confirmar tu cuenta.");
       }
-      // Si todo sale bien, lo enviamos al inicio
       navigate('/');
     } catch (err) {
-      setError(err.message || "Ocurrió un error en la autenticación.");
+      if (err.message === 'Invalid login credentials') {
+        setError("Usuario o contraseña inválida. Intente nuevamente.");
+      } else {
+        setError(err.message || "Ocurrió un error en la autenticación.");
+      }
     } finally {
       setLoading(false);
     }
@@ -99,6 +99,7 @@ export default function AuthView() {
           <p className="text-sm text-slate-400">
             {isLogin ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}
             <button 
+              type="button"
               onClick={() => { setIsLogin(!isLogin); setError(null); }}
               className="ml-2 text-blue-400 hover:text-blue-300 font-bold transition-colors"
             >
