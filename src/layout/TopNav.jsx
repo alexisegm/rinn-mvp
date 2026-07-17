@@ -4,6 +4,8 @@ import { useFavoritos } from '../context/FavoritosContext';
 import { useSearch } from '../context/SearchContext';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import SearchBox from './components/SearchBox';
+import UserMenu from './components/UserMenu';
 
 export default function TopNav() {
   const { favoritos } = useFavoritos();
@@ -64,52 +66,17 @@ export default function TopNav() {
           </span>
         </Link>
 
-        <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
-          <form onSubmit={handleSubmit} className="w-full relative">
-            <input 
-              type="text" 
-              id="search-input"
-              name="search-input"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onFocus={() => setShowDropdown(true)}
-              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-              placeholder="Buscar por repuesto, SKU o categoría..." 
-              className="w-full bg-slate-800 border border-slate-700 text-slate-200 px-4 py-2 rounded focus:outline-none focus:border-blue-500 transition-colors"
-            />
-            <button type="submit" className="absolute right-2 top-2 text-slate-400 hover:text-blue-500">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </button>
-          </form>
-
-          {showDropdown && historial.length > 0 && (
-            <div className="absolute top-full left-0 mt-1 w-full bg-slate-800 border border-slate-700 rounded-md shadow-2xl z-50 overflow-hidden">
-              <div className="p-2 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Últimas Búsquedas</span>
-                <button 
-                  onMouseDown={(e) => { e.preventDefault(); limpiarHistorial(); }} 
-                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Limpiar
-                </button>
-              </div>
-              <ul className="max-h-48 overflow-y-auto">
-                {historial.map((item, index) => (
-                  <li key={index}>
-                    <button 
-                      onMouseDown={(e) => { e.preventDefault(); handleHistoryClick(item); }}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors flex items-center gap-2"
-                    >
-                      <span className="text-slate-500 text-lg">🕒</span> {item}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+        <SearchBox
+          inputValue={inputValue}
+          onInputChange={(e) => setInputValue(e.target.value)}
+          onFocus={() => setShowDropdown(true)}
+          onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+          onSubmit={handleSubmit}
+          showDropdown={showDropdown}
+          historial={historial}
+          onHistoryClick={handleHistoryClick}
+          onClearHistory={limpiarHistorial}
+        />
 
         <div className="flex items-center gap-4 sm:gap-6">
           <Link 
@@ -152,56 +119,14 @@ export default function TopNav() {
             )}
           </Link>
           
-          {user ? (
-            <div className="relative border-l border-slate-700 pl-4 sm:pl-6" ref={userMenuRef}>
-              <button 
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors focus:outline-none"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                <span className="hidden sm:inline text-sm font-medium">Cuenta</span>
-              </button>
-
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-3 w-48 bg-slate-800 border border-slate-700 rounded-md shadow-2xl py-1 z-50">
-                  <div className="px-4 py-3 border-b border-slate-700">
-                    <p className="text-xs text-slate-400">Sesión iniciada</p>
-                    <p className="text-sm font-bold text-white truncate">{user.email}</p>
-                  </div>
-                  <Link 
-                    to="/perfil" 
-                    onClick={() => setIsUserMenuOpen(false)}
-                    className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
-                  >
-                    Mi Perfil
-                  </Link>
-                  <button 
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      handleLogout();
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 transition-colors"
-                  >
-                    Cerrar Sesión
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="border-l border-slate-700 pl-4 sm:pl-6">
-              <Link 
-                to="/auth" 
-                className="bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 sm:px-4 sm:py-1.5 rounded transition-colors flex items-center gap-2 text-sm font-medium"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                </svg>
-                <span className="hidden sm:inline">Ingresar</span>
-              </Link>
-            </div>
-          )}
+          <UserMenu
+            user={user}
+            isUserMenuOpen={isUserMenuOpen}
+            onToggleMenu={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            onCloseMenu={() => setIsUserMenuOpen(false)}
+            onLogout={handleLogout}
+            menuRef={userMenuRef}
+          />
         </div>
       </div>
     </nav>
