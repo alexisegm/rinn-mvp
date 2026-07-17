@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { safeLocalStorage } from '../utils/safeLocalStorage';
-import { supabase } from '../config/supabase';
+import { ordersService } from '../services/ordersService';
 
 const CartContext = createContext();
 
@@ -50,41 +50,19 @@ export function CartProvider({ children }) {
   // Se añade el parámetro totalFinal para reflejar costos de envío
   const procesarOrden = async (usuarioId, datosEnvio = {}, totalFinal) => {
     try {
-      // Si no viene un totalFinal, recalculamos el base como salvaguarda
-      const totalSeguro = totalFinal || carrito.reduce((sum, item) => sum + (parseFloat(item.precio) * item.cantidad), 0);
+      const { data: orden, error } = await ordersService.createOrder({
+        usuarioId,
+        datosEnvio,
+        totalFinal,
+        carrito
+      });
 
-      const { data: orden, error: ordenError } = await supabase
-        .from('ordenes')
-        .insert({ 
-          usuario_id: usuarioId,
-          total: totalSeguro,
-          estado: 'pendiente',
-          ...datosEnvio // Aquí se inyectan tipo_entrega y sucursal_id
-        })
-        .select()
-        .single();
-        
-      if (ordenError) throw ordenError;
-
-      const detalles = carrito.map(item => ({
-        orden_id: orden.id,
-        repuesto_id: item.id,
-        cantidad: item.cantidad,
-        precio_unitario: parseFloat(item.precio)
-      }));
-
-      const { error: detallesError } = await supabase
-        .from('orden_detalles')
-        .insert(detalles);
-
-      if (detallesError) throw detallesError;
+      if (error) throw error;
 
       setCarrito([]);
-      
-      return orden.id; 
-
+      return orden.id;
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
       return null;
     }
   };

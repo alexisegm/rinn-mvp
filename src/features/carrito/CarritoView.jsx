@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../config/supabase';
+import { catalogService } from '../../services/catalogService';
 
 export default function CarritoView() {
   const { carrito, eliminarDelCarrito, actualizarCantidad, limpiarCarrito, totalItems, totalPrecio, procesarOrden } = useCart();
@@ -20,7 +20,7 @@ export default function CarritoView() {
   // Cargar tiendas desde Supabase
   useEffect(() => {
     const fetchTiendas = async () => {
-      const { data, error } = await supabase.from('tiendas').select('id, nombre, direccion');
+      const { data, error } = await catalogService.getTiendas();
       if (!error && data) {
         setTiendas(data);
       }

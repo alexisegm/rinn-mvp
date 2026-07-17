@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { supabase } from '../../config/supabase';
+import { ordersService } from '../../services/ordersService';
 
 export default function CheckoutSuccessView() {
   const location = useLocation();
@@ -17,11 +17,7 @@ export default function CheckoutSuccessView() {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('ordenes')
-          .select('*, orden_detalles(cantidad, precio_unitario, repuestos(nombre, sku))')
-          .eq('id', ordenId)
-          .single();
+        const { data, error } = await ordersService.getOrderById(ordenId);
 
         if (error) throw error;
         if (data) setDetallesOrden(data);

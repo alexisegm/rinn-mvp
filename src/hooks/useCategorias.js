@@ -1,6 +1,6 @@
 // src/hooks/useCategorias.js
 import { useState, useEffect } from 'react';
-import { supabase } from '../config/supabase';
+import { catalogService } from '../services/catalogService';
 
 export function useCategorias() {
   const [categorias, setCategorias] = useState([]);
@@ -10,16 +10,11 @@ export function useCategorias() {
     const fetchCategorias = async () => {
       try {
         setIsLoadingCat(true);
-        // Traemos los IDs y nombres de la tabla categorías
-        const { data, error } = await supabase
-          .from('categorias')
-          .select('id, nombre')
-          .order('nombre');
-        
+        const { data, error } = await catalogService.getCategorias();
         if (error) throw error;
         setCategorias(data || []);
       } catch (err) {
-        console.error("Error al cargar categorías:", err);
+        console.error('Error al cargar categorías:', err);
       } finally {
         setIsLoadingCat(false);
       }

@@ -1,8 +1,8 @@
 // src/context/FavoritosContext.jsx
 import { createContext, useState, useEffect, useContext } from 'react';
-import { supabase } from '../config/supabase';
 import { safeLocalStorage } from '../utils/safeLocalStorage';
-import { useAuth } from './AuthContext'; // <-- Inyectamos la nube de autenticación
+import { useAuth } from './AuthContext';
+import { favoritesService } from '../services/favoritesService';
 
 const FavoritosContext = createContext();
 
@@ -29,34 +29,13 @@ export function FavoritosProvider({ children }) {
     }
   }, [favoritos, user]);
 
-  // 3. Función para traer datos cruzados (Favoritos + Repuestos + Inventario)
   const fetchFavoritosNube = async () => {
     try {
-      const { data, error } = await supabase
-        .from('favoritos_usuarios')
-        .select(`
-          repuesto_id,
-          repuestos (
-            id, sku, nombre,
-            inventario_tienda (precio_usd, stock)
-          )
-        `)
-        .eq('usuario_id', user.id);
-
+      const { data, error } = await favoritesService.getFavoritesByUser(user.id);
       if (error) throw error;
-
-      // Formateamos los datos para que la tarjeta (RepuestoCard) los entienda igual que siempre
-      const favsFormateados = data.map(item => ({
-        id: item.repuestos.id,
-        sku: item.repuestos.sku,
-        nombre: item.repuestos.nombre,
-        precio: item.repuestos.inventario_tienda[0]?.precio_usd || "0.00",
-        stock: item.repuestos.inventario_tienda[0]?.stock || 0
-      }));
-      
-      setFavoritos(favsFormateados);
+      setFavoritos(data);
     } catch (error) {
-      console.error("Error al cargar los favoritos de la nube:", error);
+      console.error('Error al cargar los favoritos de la nube:', error);
     }
   };
 
@@ -75,26 +54,15 @@ export function FavoritosProvider({ children }) {
     if (user) {
       try {
         if (existe) {
-          // Si ya existía, lo eliminamos de Supabase
-          const { error } = await supabase
-            .from('favoritos_usuarios')
-            .delete()
-            .eq('usuario_id', user.id)
-            .eq('repuesto_id', repuesto.id);
-            
+          const { error } = await favoritesService.removeFavorite(user.id, repuesto.id);
           if (error) throw error;
         } else {
-          // Si no existía, lo insertamos en Supabase
-          const { error } = await supabase
-            .from('favoritos_usuarios')
-            .insert({ usuario_id: user.id, repuesto_id: repuesto.id });
-            
+          const { error } = await favoritesService.addFavorite(user.id, repuesto.id);
           if (error) throw error;
         }
       } catch (error) {
-        console.error("Error sincronizando con la base de datos:", error);
-        // Si la base de datos falla, revertimos el estado visual a la verdad del servidor
-        fetchFavoritosNube(); 
+        console.error('Error sincronizando con la base de datos:', error);
+        fetchFavoritosNube();
       }
     }
   };

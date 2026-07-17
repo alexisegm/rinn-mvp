@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import { supabase } from '../config/supabase';
 import { useAuth } from './AuthContext';
 import { safeLocalStorage } from '../utils/safeLocalStorage';
+import { garageService } from '../services/garageService';
 
 const GarageContext = createContext();
 
@@ -16,11 +16,7 @@ export function GarageProvider({ children }) {
   useEffect(() => {
     const fetchVehiculos = async () => {
       try {
-        const { data, error } = await supabase
-          .from('vehiculos')
-          .select('*')
-          .order('marca', { ascending: true });
-
+        const { data, error } = await garageService.getVehiculos();
         if (error) throw error;
         if (data) setVehiculosDisponibles(data);
       } catch (error) {
@@ -40,11 +36,7 @@ export function GarageProvider({ children }) {
 
       try {
         setIsLoadingGarage(true);
-        const { data, error } = await supabase
-          .from('usuario_vehiculo')
-          .select('vehiculo_id, vehiculos(*)')
-          .eq('usuario_id', user.id)
-          .maybeSingle();
+        const { data, error } = await garageService.getVehiculoActivo(user.id);
 
         if (error) {
           console.error(error);
@@ -69,23 +61,8 @@ export function GarageProvider({ children }) {
     safeLocalStorage.setItem('rinn_garage_activo', vehiculo);
 
     if (user?.id) {
-      if (vehiculo) {
-        const { error } = await supabase
-          .from('usuario_vehiculo')
-          .upsert(
-            { usuario_id: user.id, vehiculo_id: vehiculo.id },
-            { onConflict: 'usuario_id' }
-          );
-
-        if (error) console.error(error);
-      } else {
-        const { error } = await supabase
-          .from('usuario_vehiculo')
-          .delete()
-          .eq('usuario_id', user.id);
-
-        if (error) console.error(error);
-      }
+      const { error } = await garageService.selectVehiculo(user.id, vehiculo);
+      if (error) console.error(error);
     }
   };
 

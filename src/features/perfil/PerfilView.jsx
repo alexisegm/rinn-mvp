@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../config/supabase';
 import { useAuth } from '../../context/AuthContext';
 import GarageSelector from '../catalogo/components/GarageSelector';
+import { ordersService } from '../../services/ordersService';
 
 export default function PerfilView() {
   const { user } = useAuth();
@@ -14,11 +14,7 @@ export default function PerfilView() {
       
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('ordenes')
-          .select('*, orden_detalles(cantidad, precio_unitario, repuestos(nombre, sku))')
-          .eq('usuario_id', user.id)
-          .order('creado_en', { ascending: false });
+        const { data, error } = await ordersService.getOrdersByUser(user.id);
 
         if (error) throw error;
         if (data) setOrdenes(data);

@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useState, useEffect, useContext } from 'react';
-import { supabase } from '../config/supabase';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -10,39 +10,36 @@ export function AuthProvider({ children }) {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   useEffect(() => {
-    // 1. Obtener la sesión actual al cargar la aplicación
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    authService.getSession().then(({ session }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoadingAuth(false);
     });
 
-    // 2. Escuchar cambios de estado (cuando el usuario hace login o logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { subscription } = authService.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoadingAuth(false);
     });
 
-    // Limpieza de la suscripción al desmontar
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
   // Funciones de conveniencia para usar en nuestros componentes
   const login = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await authService.signIn(email, password);
     if (error) throw error;
     return data;
   };
 
   const register = async (email, password) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await authService.signUp(email, password);
     if (error) throw error;
     return data;
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await authService.signOut();
     if (error) throw error;
   };
 
