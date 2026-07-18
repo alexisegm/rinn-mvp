@@ -1,0 +1,20 @@
+# Reporte de Mejoras e Iteraciones - RINN PRO
+
+> **Nota:** Este documento registra las refactorizaciones de arquitectura, la mitigación de anti-patrones y la evolución de las características de UX/UI implementadas a lo largo de las 82 fases de desarrollo del proyecto.
+
+## 1. Mejoras de Arquitectura (Implementadas)
+* **Desacoplamiento de la Base de Datos (Fase 81):** Se introdujo una capa de servicios (`services/`) para centralizar el acceso a Supabase, reduciendo el acoplamiento directo en componentes, contextos y hooks[cite: 7]. Se creó el archivo `globalStoreSupabase.js` como una capa genérica para operaciones CRUD, acompañado de servicios especializados como `authService.js`, `catalogService.js` y `ordersService.js`[cite: 7].
+* **Delegación de Responsabilidades y Patrón Orquestador (Fase 82):** Se refactorizaron las vistas más cargadas (`CarritoView`, `CatalogoView`, `RepuestoDetalleView`, `PerfilView`) para que actúen estrictamente como orquestadores lógicos[cite: 8, 9, 10]. La lógica de presentación y el renderizado condicional se movieron a subcomponentes especializados, mejorando la legibilidad, el mantenimiento y la reutilización de UI[cite: 9].
+* **Erradicación de Anti-patrones (Mixed Concerns & God Component):** Se crearon múltiples subcomponentes dedicados para dividir la carga visual[cite: 8, 9, 10]. Ejemplos clave incluyen `CarritoVacio`, `ResumenEntrega`, `CatalogoHeaderBanner`, `DetalleProductoPrincipal`, y `HistorialPedidos`[cite: 8, 9].
+* **Validación de Estabilidad:** Los cambios de refactorización visual y de responsabilidades se verificaron consistentemente mediante compilaciones (`npm run build`), confirmando la reducción del acoplamiento sin introducir regresiones en el código[cite: 8, 10].
+
+## 2. Programación Defensiva y Tolerancia a Fallos (Implementadas)
+* **Gestión de Errores Visuales:** Se crearon e integraron componentes de interfaz defensiva como `LoadingState` y `ErrorMessage` para el manejo controlado de procesos asíncronos[cite: 5].
+* **Resiliencia de Recursos (Assets):** Se implementaron componentes para estados vacíos (`EmptyState`) y manejo de imágenes rotas (`FallbackImage`), asegurando que la interfaz no colapse ante la ausencia de recursos visuales[cite: 5].
+* **Persistencia Segura:** Se creó la utilidad `safeLocalStorage.js` para asegurar un manejo controlado de los datos almacenados en el navegador del usuario[cite: 5].
+
+## 3. Iteraciones de UX/UI y Reglas de Negocio (Implementadas)
+* **Evolución de la Navegación (TopNav):** La barra superior evolucionó hacia una interfaz híbrida, optimizando el espacio en pantallas de celulares mostrando solo iconos[cite: 6]. Se incorporaron subcomponentes especializados como `SearchBox` para las búsquedas y `UserMenu` para manejar el cierre de sesión y el acceso a la cuenta[cite: 6, 8].
+* **Persistencia de Compatibilidad (Sistema Garage):** Se implementó un flujo que asocia dinámicamente los repuestos con el modelo del vehículo[cite: 6]. La selección del vehículo del usuario persiste y se sincroniza entre el inicio (`HomeView`), el panel de filtros (`SidebarFiltros`), el catálogo principal y la vista de perfil (`PerfilView`)[cite: 6].
+* **Enriquecimiento del Flujo de Compra (Checkout):** Se agregaron consultas para renderizar los nombres de las tiendas, sus coordenadas, stock local y enlaces directos a Google Maps dentro del detalle de los repuestos[cite: 6]. Además, se incluyó un selector visual de método de entrega en el carrito[cite: 6].
+* **Feedback de Usuario (UX):** Se actualizó el componente de autenticación (`AuthView`) para mostrar mensajes de error en español capturados directamente desde Supabase en caso de credenciales inválidas[cite: 6]. Los nombres y detalles de los repuestos se incluyeron de forma explícita en el mensaje de éxito de compra (`CheckoutSuccessView`) y en el historial de pedidos[cite: 6].

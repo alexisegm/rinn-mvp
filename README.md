@@ -1,16 +1,40 @@
-# React + Vite
+# RINN PRO 🚗⚙️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**RINN PRO** es una plataforma web moderna y escalable diseñada para la comercialización, gestión y validación de compatibilidad de repuestos automotrices. Construida con React, la aplicación ofrece una experiencia de usuario fluida mediante una arquitectura tolerante a fallos, gestión de estados complejos y un diseño altamente modular.
 
-Currently, two official plugins are available:
+## 🚀 Características Principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+* **Sistema "Garage" de Compatibilidad:** Algoritmo de filtrado dinámico que asocia repuestos específicos con los modelos de vehículos del usuario, manteniendo la selección persistente en toda la navegación[cite: 6].
+* **Gestor de Compras y Favoritos:** Sistema completo de carrito de compras con selector de métodos de entrega y lista de deseos, respaldado por un manejo de estado global eficiente (Context API)[cite: 5, 6].
+* **Arquitectura Desacoplada:** Capa de servicios (`services/`) que abstrae toda la lógica de backend (actualmente Supabase), permitiendo migraciones de base de datos futuras sin afectar la capa de presentación[cite: 7].
+* **Programación Defensiva (UI Resiliente):** Implementación de componentes preventivos (`FallbackImage`, `LoadingState`, `ErrorMessage`) y manejo seguro de almacenamiento local (`safeLocalStorage`) para garantizar que la interfaz no colapse ante fallos de red o recursos inexistentes[cite: 5].
+* **Perfil de Usuario Integral:** Panel de administración de cuenta que incluye el garaje virtual del usuario, historial detallado de pedidos y gestión de sesiones[cite: 6].
 
-## React Compiler
+## 🛠️ Stack Tecnológico
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+* **Core:** React 18, Vite.
+* **Enrutamiento:** React Router DOM (v6+)[cite: 5].
+* **Estilos:** Tailwind CSS v4 (PostCSS)[cite: 5].
+* **Estado Global:** React Context API (Auth, Cart, Garage, Favorites, Search)[cite: 5, 6].
+* **Backend / BaaS (Abstraído):** Supabase (Auth & Database)[cite: 7].
 
-## Expanding the ESLint configuration
+## 📂 Estructura del Proyecto
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+El proyecto sigue un patrón estricto de separación de responsabilidades para evitar anti-patrones como el *God Component* y *Mixed Concerns*:
+
+```text
+src/
+├── context/      # Nubes de estado global (AuthContext, CartContext, etc.)
+├── features/     # Lógica de negocio dividida por dominios (auth, catalogo, carrito, checkout, perfil)
+├── hooks/        # Funciones reutilizables y custom hooks (useCatalogo, useRepuesto)
+├── layout/       # Contenedores estructurales (MainLayout, TopNav)
+├── services/     # Capa de desacoplamiento de base de datos (globalStoreSupabase, catalogService)
+├── ui/           # Componentes visuales puros y resilientes (LoadingState, FallbackImage)
+└── utils/        # Funciones auxiliares (safeLocalStorage)
+
+## 🏗️ Refactorización y Buenas Prácticas
+RINN PRO pasó por un proceso exhaustivo de refactorización en sus etapas finales para garantizar código limpio y mantenible:
+
+Patrón Orquestador: Las vistas principales (CatalogoView, CarritoView, RepuestoDetalleView) delegan el 100% de su carga visual a subcomponentes especializados[cite: 8, 9].
+
+Mantenimiento Cero de UI Rota: Evaluaciones condicionales y optional chaining garantizan estabilidad incluso con datos de inventario incompletos.
