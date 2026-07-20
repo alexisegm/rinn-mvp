@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import SidebarFiltros from './components/SidebarFiltros';
 import LoadingState from '../../ui/LoadingState';
 import ErrorMessage from '../../ui/ErrorMessage';
@@ -8,12 +9,19 @@ import { useSearch } from '../../context/SearchContext';
 import { useGarage } from '../../context/GarageContext';
 import HeaderCatalogo from './components/HeaderCatalogo';
 import ListaRepuestos from './components/ListaRepuestos';
+import { getCategoriaFromSearch } from './utils/catalogoRoutes';
 
 export default function CatalogoView() {
+  const location = useLocation();
   const [categoriaActiva, setCategoriaActiva] = useState(null);
   const { searchTerm, ejecutarBusqueda } = useSearch();
   const { vehiculoActivo, isLoadingGarage } = useGarage();
   const { repuestos, isLoading, error, refetch } = useCatalogo(categoriaActiva, searchTerm, vehiculoActivo?.id);
+
+  useEffect(() => {
+    const categoriaDesdeUrl = getCategoriaFromSearch(location.search);
+    setCategoriaActiva(categoriaDesdeUrl || null);
+  }, [location.search]);
 
   const showLoading = isLoading || isLoadingGarage;
 

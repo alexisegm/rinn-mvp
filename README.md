@@ -32,9 +32,3 @@ src/
 ├── ui/           # Componentes visuales puros y resilientes (LoadingState, FallbackImage)
 └── utils/        # Funciones auxiliares (safeLocalStorage)
 
-## 🏗️ Refactorización y Buenas Prácticas
-RINN PRO pasó por un proceso exhaustivo de refactorización en sus etapas finales para garantizar código limpio y mantenible:
-
-Patrón Orquestador: Las vistas principales (CatalogoView, CarritoView, RepuestoDetalleView) delegan el 100% de su carga visual a subcomponentes especializados[cite: 8, 9].
-
-Mantenimiento Cero de UI Rota: Evaluaciones condicionales y optional chaining garantizan estabilidad incluso con datos de inventario incompletos.

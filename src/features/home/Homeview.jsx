@@ -1,19 +1,44 @@
 import { Link } from 'react-router-dom';
 import { useGarage } from '../../context/GarageContext';
+import { useCategorias } from '../../hooks/useCategorias';
+import { buildCatalogoUrl } from '../catalogo/utils/catalogoRoutes';
+
+const categoriasFallback = [
+  { id: 'repuestos-generales', nombre: 'Repuestos Generales', icono: '⚙️' },
+  { id: 'desempeno-tuning', nombre: 'Desempeño y Tuning', icono: '🏎️' },
+  { id: 'cauchos-rines', nombre: 'Cauchos y Rines', icono: '🛞' },
+  { id: 'aceites-fluidos', nombre: 'Aceites y Fluidos', icono: '🛢️' },
+  { id: 'cuidado-vehiculo', nombre: 'Cuidado del Vehículo', icono: '🧼' },
+  { id: 'accesorios-interiores', nombre: 'Accesorios Interiores', icono: '💺' },
+  { id: 'accesorios-exteriores', nombre: 'Accesorios Exteriores', icono: '🛡️' },
+  { id: 'herramientas', nombre: 'Herramientas', icono: '🧰' }
+];
+
+function getIconoCategoria(nombre = '') {
+  const nombreLower = nombre.toLowerCase();
+
+  if (nombreLower.includes('herramient')) return '🧰';
+  if (nombreLower.includes('tuning') || nombreLower.includes('desempeño')) return '🏎️';
+  if (nombreLower.includes('caucho') || nombreLower.includes('rin')) return '🛞';
+  if (nombreLower.includes('aceite') || nombreLower.includes('fluido')) return '🛢️';
+  if (nombreLower.includes('cuidado')) return '🧼';
+  if (nombreLower.includes('interior')) return '💺';
+  if (nombreLower.includes('exterior')) return '🛡️';
+
+  return '⚙️';
+}
 
 export default function HomeView() {
   const { vehiculoActivo } = useGarage();
-  
-  const categorias = [
-    { id: 'repuestos-generales', nombre: 'Repuestos Generales', icono: '⚙️' },
-    { id: 'desempeno-tuning', nombre: 'Desempeño y Tuning', icono: '🏎️' },
-    { id: 'cauchos-rines', nombre: 'Cauchos y Rines', icono: '🛞' },
-    { id: 'aceites-fluidos', nombre: 'Aceites y Fluidos', icono: '🛢️' },
-    { id: 'cuidado-vehiculo', nombre: 'Cuidado del Vehículo', icono: '🧼' },
-    { id: 'accesorios-interiores', nombre: 'Accesorios Interiores', icono: '💺' },
-    { id: 'accesorios-exteriores', nombre: 'Accesorios Exteriores', icono: '🛡️' },
-    { id: 'herramientas', nombre: 'Herramientas', icono: '🧰' }
-  ];
+  const { categorias: categoriasDesdeApi, isLoadingCat } = useCategorias();
+
+  const categorias = categoriasDesdeApi.length > 0
+    ? categoriasDesdeApi.map((cat) => ({
+        id: cat.id,
+        nombre: cat.nombre,
+        icono: getIconoCategoria(cat.nombre)
+      }))
+    : categoriasFallback;
 
   return (
     <div className="w-full flex flex-col gap-8">
@@ -55,7 +80,7 @@ export default function HomeView() {
           {categorias.map((cat) => (
             <Link 
               key={cat.id} 
-              to="/catalogo"
+              to={buildCatalogoUrl(cat.id)}
               className="bg-slate-900 border border-slate-800 hover:border-blue-500 hover:bg-slate-800/80 transition-all rounded-lg p-6 flex flex-col items-center justify-center gap-3 text-center cursor-pointer group"
             >
               <span className="text-4xl group-hover:scale-110 transition-transform">{cat.icono}</span>
